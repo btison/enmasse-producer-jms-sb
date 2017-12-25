@@ -4,6 +4,7 @@ import javax.jms.JMSException;
 
 import org.apache.qpid.jms.JmsConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.connection.CachingConnectionFactory;
@@ -19,6 +20,9 @@ public class ApplicationConfiguration {
     @Autowired
     private JmsConnectionFactory jcf;
 
+    @Value("${amqpjms.session-cache-size}")
+    private int jmsSessionCacheSize;
+
 
     @Bean
     public JacksonJsonProvider jsonProvider(ObjectMapper objectMapper) {
@@ -30,10 +34,12 @@ public class ApplicationConfiguration {
     @Bean
     JmsTemplate jmsTemplate() throws JMSException {
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(jcf);
-        connectionFactory.setSessionCacheSize(50);
+        connectionFactory.setSessionCacheSize(jmsSessionCacheSize);
 
         JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
+        jmsTemplate.setExplicitQosEnabled(true);
         return jmsTemplate;
+
     }
 
 }
